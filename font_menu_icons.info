@@ -1,0 +1,4 @@
+name = Font Menu Icons
+description = Adds a icon text field to menu items where an icon code can be used
+package = User Interface
+core = 7.x

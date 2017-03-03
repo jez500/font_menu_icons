@@ -1,0 +1,61 @@
+<?php
+/**
+ * @file
+ * Font menu icons module.
+ */
+
+/**
+ * Implements hook_form_form_menu_edit_item_alter().
+ */
+function font_menu_icons_form_menu_edit_item_alter(&$form, &$form_state, $form_id) {
+
+  // Get existing code (if any).
+  $code = '';
+  if (!empty($form['original_item']['#value']['options']['icon_code'])) {
+    $code = $form['original_item']['#value']['options']['icon_code'];
+  }
+
+  // Add an icon code field.
+  $form['icon_code'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Icon code'),
+    '#description' => t('The icon code provided by the icon font library. Eg <em>fa-search</em> or <em>icomoon-arrow-up</em>'),
+    '#default_value' => $code,
+  );
+
+  // Add our submit handler to top of the stack to kick in before save.
+  array_unshift($form['#submit'], 'font_menu_icons_form_menu_edit_item_submit');
+}
+
+/**
+ * Submit handler for menu link form save.
+ */
+function font_menu_icons_form_menu_edit_item_submit($form, &$form_state) {
+  // Save the icon code in the link options.
+  $form_state['values']['options']['icon_code'] = $form_state['values']['icon_code'];
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function font_menu_icons_preprocess_menu_link(&$variables) {
+  $el = $variables['element'];
+
+  // We need to add html to the title so for security we escape the title first.
+  $title = $el['#title'];
+  if (empty($el['#localized_options']['html'])) {
+    $title = check_plain($title);
+  }
+
+  // If we have an icon code build icon.
+  $icon = '';
+  if (!empty($el['#original_link']['options']['icon_code'])) {
+    $classes = array('font-menu-icons__icon', $el['#original_link']['options']['icon_code']);
+    $icon = '<span class="' . check_plain(implode(' ', $classes)) . '"></span>';
+    $title = '<span class="font-menu-icons__text">' . $title . '</span>';
+  }
+
+  // Allow html (title is pre-secured) and add icon.
+  $variables['element']['#localized_options']['html'] = TRUE;
+  $variables['element']['#title'] = $icon . ' ' . $title;
+}
